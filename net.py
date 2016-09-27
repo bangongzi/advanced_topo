@@ -890,28 +890,19 @@ class Mininet( object ):
         output( "%s and %s\n" % ( client.name, server.name ) )
         iperfArgs = 'iperf '
         client.cmd(
-            iperfArgs + '-t '+ str(period) + ' -c ' + server.IP() + ' -w' +str(window_size)
-            +' >> /home/per/log/'  + 'client'+ filename +'.out'+'&')
-
-    def netstat_output( self,hosts=None):
-        """collect netstat information of each host,output the information
-           to the h*netstat.txt"""
-        if not hosts:
-            return
-        else:
-            assert len( hosts ) == 2
-        client, server = hosts
-        filename = client.name[1:]
-        client.cmd('netstat -s '+' >> /home/per/log/netstat/'  + 'h'+ filename +'netstat.txt')
+            iperfArgs + '-t '+ str(period) + ' -c ' + server.IP() +' &' )
+#        client.cmd(
+#            iperfArgs + '-t '+ str(period) + ' -c ' + server.IP() + ' -w' +str(window_size)
+#            +' >> /home/per/log/'  + 'client'+ filename +'.out'+'&')
 
     def iperfMulti(self,period=60,repeat_time = 1,window_size = 45):
-    	server_list = []
-    	client_list = [h for h in self.hosts]
-    	host_list = []
-    	host_list = [h for h in self.hosts]
+        server_list = []
+        client_list = [h for h in self.hosts]
+        host_list = []
+        host_list = [h for h in self.hosts]
  
-    	cli_outs = []
-    	ser_outs = []
+        cli_outs = []
+        ser_outs = []
         host_num = 201
         tag_num = host_num - 1
  
@@ -922,13 +913,8 @@ class Mininet( object ):
     	    for j in xrange(0, tag_num):
                 client = host_list[j]
                 self.iperf_single(hosts = [client, server],period= period,window_size=window_size)
-                sleep(.001)
-            sleep(.1)
-            sleep(period)
-            for j in xrange(0, tag_num):
-                client = host_list[j]
-                self.netstat_output(hosts = [client, server])
                 sleep(.05)
+            sleep(period)
             print "The test is done and statics has been stored\n"
 	
 ##################################################################################
