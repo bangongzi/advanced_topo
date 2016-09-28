@@ -133,6 +133,10 @@ class CLI( Cmd ):
             error('invalid number of args: iperfmulti udpBw period\n' +
                'udpBw examples: 1M 120\n')
 
+    def do_hostports( self, _line ):
+        "Configure host ports to a given transmit speed"
+        self.mn.host_ports_config()
+
     def emptyline( self ):
         "Don't repeat last command when you hit return."
         pass

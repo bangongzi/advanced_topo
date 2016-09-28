@@ -885,28 +885,15 @@ class Mininet( object ):
         else:
             assert len( hosts ) == 2
         client, server = hosts
-        filename = client.name[1:]
         output( '*** Iperf: building TCP connection between ' )
         output( "%s and %s\n" % ( client.name, server.name ) )
         iperfArgs = 'iperf '
-        client.cmd(
-            iperfArgs + '-t '+ str(period) + ' -c ' + server.IP() +' &' )
-#        client.cmd(
-#            iperfArgs + '-t '+ str(period) + ' -c ' + server.IP() + ' -w' +str(window_size)
-#            +' >> /home/per/log/'  + 'client'+ filename +'.out'+'&')
+        client.cmd( 'iperf' + ' -t '+ str(period) + ' -c ' + server.IP() +' &' )
 
     def iperfMulti(self,period=60,repeat_time = 1,window_size = 45):
-        server_list = []
-        client_list = [h for h in self.hosts]
         host_list = []
         host_list = [h for h in self.hosts]
- 
-        cli_outs = []
-        ser_outs = []
-        host_num = 201
-        tag_num = host_num - 1
- 
-        _len = len(host_list)
+        tag_num = len(host_list) - 1
         server = host_list[tag_num]
         for i in xrange(0,repeat_time):
             print "test%d begins:" %(i+1)
@@ -915,7 +902,18 @@ class Mininet( object ):
                 self.iperf_single(hosts = [client, server],period= period,window_size=window_size)
                 sleep(.05)
             sleep(period)
-            print "The test is done and statics has been stored\n"
+            print "The test has been done\n"
+
+    def host_ports_config( self ):
+        """Configure host ports to a given transmit speed"""
+        host_list = []
+        host_list = [h for h in self.hosts]
+        tag_num = len(host_list) - 1
+        for i in xrange(0,tag_num):
+            host = host_list[i]
+            seq_num = host.name[1:]
+            host.cmd('./host_port_config.sh'+' '+seq_num+' 0'+' 400'+' 0.5' )
+        print "The ports of host1 to host200 has been configured"
 	
 ##################################################################################
 ##############################changed part ends###################################
