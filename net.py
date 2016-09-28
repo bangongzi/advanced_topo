@@ -898,7 +898,7 @@ class Mininet( object ):
         print "This is Tesla"
         for i in xrange(0,repeat_time):
             print "test%d begins:" %(i+1)
-    	    for j in xrange(0, 5):
+    	    for j in xrange(0, 50):
                 client1,client2,client3,client4 = (host_list[j],host_list[j+50],host_list[j+100],host_list[j+150])
                 self.iperf_single(hosts = [client1, server1],period= period,window_size=window_size)
                 self.iperf_single(hosts = [client2, server2],period= period,window_size=window_size)
