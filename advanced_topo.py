@@ -63,17 +63,21 @@ def myNetwork():
             ip_addr = '10.0.0.' + str( i*10 + j + 1 )
             hs = net.addHost(host_name,cls = Host,ip = ip_addr,defaultRoute=None)
             h.append( hs )
-    #Adding the special host "h201" to "h204"
-    for i in xrange(1,5):
+    #Adding the special host "h201" 
+    """for i in xrange(1,5):
         host_name = 'h' + str( i + 200 )
         ip_addr = '10.0.0.' + str( i + 200 )
         hs = net.addHost(host_name,cls = Host,ip = ip_addr,defaultRoute=None)
-        h.append( hs )
+        h.append( hs ) """
+    hs = net.addHost('h201',cls = Host,ip = '10.0.0.201',defaultRoute=None)
+    h.append( hs )
+
 
     info( '*** Adding links ***\n')
     #Adding the special link between h201 and s101
-    for i in xrange(200,204):
-        net.addLink(core_sw[0],h[i])
+    """for i in xrange(200,204):
+        net.addLink(core_sw[0],h[i])"""
+    net.addLink(core_sw[0],h[200])
     #Adding links between core switches and distribution switches
     for i in range(core_num):
         for j in range(dist_num):

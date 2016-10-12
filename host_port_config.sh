@@ -6,7 +6,7 @@ config_single(){
 	echo "dev h${1}-eth${2} are going to be configured"
 	tc qdisc delete dev h${1}-eth${2} root
 	tc qdisc add dev h${1}-eth${2} handle 1: root dsmark indices 1 default_index 0
-	tc qdisc add dev h${1}-eth${2} handle 2: parent 1: tbf burst 2048KB latency ${3} mtu 1514 rate ${4}Gbit
+	tc qdisc add dev h${1}-eth${2} handle 2: parent 1: tbf burst 2048KB latency 100000 mtu 1514 rate ${4}Gbit
 	tc qdisc show dev h${1}-eth${2}
 }
 

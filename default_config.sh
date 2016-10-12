@@ -11,16 +11,16 @@ config_single(){
 #configure ports of layer 1
 for i in $( seq 1 9 )
 do
-	config_single "30${i}" 1 400000 6
+	config_single "30${i}" 1 75000 1
 done
 for i in $( seq 10 20 )
 do
-	config_single "3${i}" 1 400000 6
+	config_single "3${i}" 1 75000 1
 done
 #configure ports of layer 2
 for i in $( seq 1 2 )
 do
-	config_single "20${i}" 1 400000 65
+	config_single "20${i}" 1 75000 9.5
 done
 #configure ports of layer 3
-#no actual configure means it is very big
+config_single "101" ${i} 75000 18.5

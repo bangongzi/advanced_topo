@@ -1,5 +1,6 @@
+
 """
-Tesla
+Lucky
     Mininet: A simple networking testbed for OpenFlow/SDN!
 
 author: Bob Lantz (rlantz@cs.stanford.edu)
@@ -893,30 +894,29 @@ class Mininet( object ):
     def iperfMulti(self,period=60,repeat_time = 1,window_size = 45):
         host_list = []
         host_list = [h for h in self.hosts]
-        tag_num = len(host_list) - 4
-        server1,server2,server3,server4 = (host_list[tag_num],host_list[tag_num+1],host_list[tag_num+2],host_list[tag_num+3])
-        print "This is Tesla"
+        tag_num = len(host_list) - 1
+        server= host_list[tag_num]
         for i in xrange(0,repeat_time):
             print "test%d begins:" %(i+1)
     	    for j in xrange(0, 50):
                 client1,client2,client3,client4 = (host_list[j],host_list[j+50],host_list[j+100],host_list[j+150])
-                self.iperf_single(hosts = [client1, server1],period= period,window_size=window_size)
-                self.iperf_single(hosts = [client2, server2],period= period,window_size=window_size)
-                self.iperf_single(hosts = [client3, server3],period= period,window_size=window_size)
-                self.iperf_single(hosts = [client4, server4],period= period,window_size=window_size)
+                self.iperf_single(hosts = [client1, server],period= period,window_size=window_size)
+                self.iperf_single(hosts = [client2, server],period= period,window_size=window_size)
+                self.iperf_single(hosts = [client3, server],period= period,window_size=window_size)
+                self.iperf_single(hosts = [client4, server],period= period,window_size=window_size)
                 sleep(.05)
             sleep(period)
-            print "The test has been done 0.0\n"
+            print "The test has been done\n"
 
-    def host_ports_config( self ):
+    def host_ports_config( self,bandwidth = '0.1' ):
         """Configure host ports to a given transmit speed"""
         host_list = []
         host_list = [h for h in self.hosts]
-        tag_num = len(host_list) - 4
+        tag_num = len(host_list) - 1
         for i in xrange(0,tag_num):
             host = host_list[i]
             seq_num = host.name[1:]
-            host.cmd('./host_port_config.sh'+' '+seq_num+' 0'+' 400'+' 0.5' )
+            host.cmd('./host_port_config.sh'+' '+seq_num+' 0'+' 100'+ ' ' +bandwidth )
         print "The ports of host1 to host200 has been configured"
 	
 ##################################################################################

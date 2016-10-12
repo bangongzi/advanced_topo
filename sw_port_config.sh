@@ -10,7 +10,7 @@ config_single(){
 	tc qdisc show dev s${1}-eth${2}
 }
 
-latency=`expr 1000 \* ${3}`
+latency=`expr 10 \* ${3}`
 if test $# -eq 4
 then
 	config_single ${1} ${2} ${latency} ${4}

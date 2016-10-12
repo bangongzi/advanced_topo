@@ -1,4 +1,5 @@
 """
+Lucky
 A simple command-line interface for Mininet.
 
 The Mininet CLI provides a simple control console which
@@ -133,9 +134,12 @@ class CLI( Cmd ):
             error('invalid number of args: iperfmulti udpBw period\n' +
                'udpBw examples: 1M 120\n')
 
-    def do_hostports( self, _line ):
+    def do_hostports( self, line ):
         "Configure host ports to a given transmit speed"
-        self.mn.host_ports_config()
+        args = line.split()
+        if len(args) == 1:
+            bandwidth = args[ 0 ] 
+        self.mn.host_ports_config( bandwidth )
 
     def emptyline( self ):
         "Don't repeat last command when you hit return."
