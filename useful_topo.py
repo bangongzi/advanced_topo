@@ -26,7 +26,7 @@ def myNetwork():
     core_num = 1
     dist_num = 2
     aces_num = 20
-    fanout_num = 10 
+    fanout_num = 10
 
     info( '*** Adding controller ***\n' )
     RYU=net.addController(name='RYU',
@@ -49,27 +49,26 @@ def myNetwork():
     #Adding access switches
     for i in range(aces_num):
         if i <= 8:
-    	    switch_name = 's30' + str( i + 1 )
+            switch_name = 's30' + str( i + 1 )
         else:
-    	    switch_name = 's3' + str( i +1 )
+            switch_name = 's3' + str( i +1 )
         sw = net.addSwitch(switch_name, cls=OVSKernelSwitch)
         aces_sw.append( sw )
 
     info( '*** Adding hosts ***\n')
     #Adding normal hosts
-    for i in range(aces_num):
-        for j in range(fanout_num):
-            host_name = 'h' + str( i*10 + j + 1 )
-            ip_addr = '10.0.0.' + str( i*10 + j + 1 )
-            hs = net.addHost(host_name,cls = Host,ip = ip_addr,defaultRoute=None)
-            h.append( hs )
-    #Adding the special host "h201"
-    hs = net.addHost('h201',cls = Host,ip = '10.0.0.201',defaultRoute=None)
+    for i in xrange(1,291):
+        host_name = 'h' + str(i)
+        ip_addr = '10.0.' + str((i/100)) + '.' + str((i%100))
+        hs = net.addHost(host_name,cls = Host,ip = ip_addr,defaultRoute=None)
+        h.append( hs )
+    #Adding the special host "h291"
+    hs = net.addHost('h291',cls = Host,ip = '10.0.2.91',defaultRoute=None)
     h.append( hs )
 
     info( '*** Adding links ***\n')
-    #Adding the special link between h201 and s101
-    net.addLink(core_sw[0],h[200])
+    #Adding the special link between h291 and s101
+    net.addLink(core_sw[0],h[290])
     #Adding links between core switches and distribution switches
     for i in range(core_num):
         for j in range(dist_num):
@@ -78,10 +77,14 @@ def myNetwork():
     for i in range(dist_num):
         for j in range(10):
             net.addLink(dist_sw[i],aces_sw[i*10+ j])
-    #Adding links between access switches and hosts
-    for i in range(aces_num):
+    #Adding links between access switche s301 and 100 normal hosts
+    for i in range(100):
+        net.addLink(aces_sw[0], h[i])
+    #Adding links between other access switches and ohter normal hosts
+    for i in xrange(1,aces_num):
         for j in range(fanout_num):
-            net.addLink(aces_sw[i], h[i*fanout_num + j])
+            net.addLink(aces_sw[i], h[(i-1)*fanout_num+j+100])
+
     
 
     info( '*** Starting network ***\n')
