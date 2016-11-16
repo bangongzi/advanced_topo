@@ -1,4 +1,5 @@
 """
+Lucky
 A simple command-line interface for Mininet.
 
 The Mininet CLI provides a simple control console which
@@ -112,30 +113,64 @@ class CLI( Cmd ):
 ############################################################
 ###########################changed do_iperfmulti############
 ############################################################
-    def do_iperfmulti( self, line ):
-        """Multi iperf TCP test between nodes"""
-        """The format is iperfmulti 10(s) 3(times) 130(K)"""
+    def do_poissonmulti( self,line ):
+        """making poisson traffic"""
         args = line.split()
-        if len(args) == 1:
-            period = args[ 0 ]
-            self.mn.iperfMulti(float(period))
+        if len(args) == 0:
+            self.mn.poisson_multi()
+        elif len(args) == 1:
+            test_time = float(args[ 0 ])
+            self.mn.poisson_multi( test_time )
         elif len(args) == 2:
-            period = args[ 0 ]
-            repeat_time = args[ 1 ]
-            err = False
-            self.mn.iperfMulti(float(period),int(repeat_time))
-        elif len(args) == 3:
-            period = args[ 0 ]
-            repeat_time = args[ 1 ]
-            window_size = args[ 2 ]
-            self.mn.iperfMulti(float(period),int(repeat_time),int(window_size))
+            test_time = float(args[ 0 ])
+            lambd = float(args[1])
+            self.mn.poisson_multi(test_time,lambd)
         else:
-            error('invalid number of args: iperfmulti udpBw period\n' +
-               'udpBw examples: 1M 120\n')
+            error('invalid number of args: poissonmulti 15(test_time) 16(lambda)\n' )
 
-    def do_hostports( self, _line ):
+    def do_onoffmulti( self, line ):
+        """Multi iperf TCP in on_off mode"""
+        args = line.split()
+        if len(args) == 0:
+            self.mn.onoff_multi()
+        elif len(args) == 1:
+            test_time = int(args[ 0 ])
+            self.mn.onoff_multi( test_time )
+        elif len(args) == 2:
+            test_time = int(args[ 0 ])
+            alpha = float(args[ 1 ])
+            err = False
+            self.mn.onoff_multi( test_time,alpha )
+        else:
+            error('invalid number of args: onoffmulti 15(test_time) 1.5(alpha)\n' )
+
+    def do_iperfmulti( self,line ):
+        """Activate several stable TCP traffic using iperf command"""
+        args = line.split()
+        if len(args) == 0:
+            self.mn.iperf_multi()
+        elif len(args) == 1:
+            self.mn.iperf_multi( args[0] )
+        else:
+            error('invalid number of args:iperfmulti 15(test_time)' )
+
+    def do_hostports( self, line ):
         "Configure host ports to a given transmit speed"
-        self.mn.host_ports_config()
+        args = line.split()
+        if len(args) == 0:
+            self.mn.host_ports_config()
+        if len(args) == 2:
+            self.mn.host_ports_config( args[0],args[1] )
+        else:
+            error('invalid number of args:hostports 0.001(Gbit/s,h1 to h100) 0.1(Gbit/s,h101 to h290)' )
+
+    def do_servermulti( self ,line):
+        "Start nine iperf servers on one host"
+        args = line.split()
+        if len(args) == 0:
+            self.mn.server_multi()
+        else:
+            error('invalid number of args:nineS ' )
 
     def emptyline( self ):
         "Don't repeat last command when you hit return."

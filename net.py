@@ -1,5 +1,6 @@
+
 """
-Tesla
+Lucky
     Mininet: A simple networking testbed for OpenFlow/SDN!
 
 author: Bob Lantz (rlantz@cs.stanford.edu)
@@ -91,6 +92,8 @@ import re
 import select
 import signal
 import random
+import thread
+import time
 
 from time import sleep
 from itertools import chain, groupby
@@ -109,6 +112,57 @@ from mininet.term import cleanUpScreens, makeTerms
 
 # Mininet version: should be consistent with README and LICENSE
 VERSION = "2.3.0d1"
+
+###############################headerchanged part############################################
+def portrandom():
+    r = int( ( random.random() )*100000 )
+    r = (r % 5) + 1
+    pnum = '50' + str((r/10)) + str((r%10))
+    return pnum
+
+def on_off( hosts,test_time,alpha,lock ):
+    """Give the model of a simple 
+    ON_OFF module"""
+    client,server = hosts
+    print "Thread%s starts at:" %client.name[1:],time.strftime('%Y-%m-%d %H:%M:%S')
+    a = time.time() + test_time
+    b = time.time()
+    pnum = portrandom()
+    while b <  a :
+        b = time.time()
+        t1 = random.paretovariate( alpha ) * 0.010
+        t2 = random.paretovariate( alpha ) * 0.010
+        if (t1+t2)>(a-b+3):
+            continue
+        #on mode
+        client.cmd( 'iperf -t' + ' ' + str(t1) + ' -c' + ' ' + server.IP() + ' -p' + ' ' +pnum )
+        #off mode
+        time.sleep(t2)
+    lock.release()
+    print "Thread%s ends at:" %client.name[1:],time.strftime('%Y-%m-%d %H:%M:%S')
+    return
+
+def poisson( hosts,test_time,lambd,lock ):
+    """Give the model of a simple 
+    possion module"""
+    client,server = hosts
+    print "Thread%s starts at:" %client.name[1:],time.strftime('%Y-%m-%d %H:%M:%S')
+    a = time.time() + test_time
+    b = time.time()
+    pnum = portrandom()
+    while b <  a :
+        b = time.time()
+        t1 = 0.075
+        t2 = random.expovariate( lambd )
+        if (t1+t2)>(a-b+3):
+            continue
+        #on mode
+        client.cmd( 'iperf -t' + ' ' + str(t1) + ' -c' + ' ' + server.IP() + ' -p' +' '+ pnum )
+        #off mode
+        time.sleep(t2)
+    lock.release()
+    print "Thread%s ends at:" %client.name[1:],time.strftime('%Y-%m-%d %H:%M:%S')
+    return
 
 class Mininet( object ):
     "Network emulation with hosts spawned in network namespaces."
@@ -874,53 +928,125 @@ class Mininet( object ):
         cls.inited = True
 
 ##################################################################################
-##############################changed part starts#################################
+##############################bodychanged part starts#################################
 ##################################################################################
-    def iperf_single( self,hosts=None,period=60,window_size = 45):
-        """Run iperf between two hosts using TCP.
-           hosts: list of hosts; if None, uses opposite hosts
-           returns: results two-element array of server and client speeds"""
-        if not hosts:
-            return
-        else:
-            assert len( hosts ) == 2
+
+
+    def iperf_single( self,hosts,test_time ):
+        """Run iperf between two hosts using TCP"""
         client, server = hosts
-        output( '*** Iperf: building TCP connection between ' )
-        output( "%s and %s\n" % ( client.name, server.name ) )
-        iperfArgs = 'iperf '
-        client.cmd( 'iperf' + ' -t '+ str(period) + ' -c ' + server.IP() +' &' )
+        output( "*** Iperf: building TCP connection between %s and %s\n" % ( client.name, server.name ) )
+        pnum = portrandom()
+        client.cmd('iperf -t'+' '+test_time+' -c'+' '+server.IP()+' -p'+' '+pnum +' &')
+#        client.cmd('iperf -t'+' '+test_time+' -c'+' '+server.IP()+' &')
 
-    def iperfMulti(self,period=60,repeat_time = 1,window_size = 45):
-        host_list = []
-        host_list = [h for h in self.hosts]
-        tag_num = len(host_list) - 4
-        server1,server2,server3,server4 = (host_list[tag_num],host_list[tag_num+1],host_list[tag_num+2],host_list[tag_num+3])
-        print "This is Tesla"
-        for i in xrange(0,repeat_time):
-            print "test%d begins:" %(i+1)
-    	    for j in xrange(0, 50):
-                client1,client2,client3,client4 = (host_list[j],host_list[j+50],host_list[j+100],host_list[j+150])
-                self.iperf_single(hosts = [client1, server1],period= period,window_size=window_size)
-                self.iperf_single(hosts = [client2, server2],period= period,window_size=window_size)
-                self.iperf_single(hosts = [client3, server3],period= period,window_size=window_size)
-                self.iperf_single(hosts = [client4, server4],period= period,window_size=window_size)
-                sleep(.05)
-            sleep(period)
-            print "The test has been done 0.0\n"
+    def statics_output(self):
+        switch_list = [sw for sw in self.switches]
+        sw = switch_list[0]
+        #output netstat -i information and ifconfig information
+        sw.cmd('netstat -i >> /home/per/log/interfaces.txt')
+        sw.cmd('ifconfig >> /home/per/log/ifconfig.txt')
+        print "The statics is stored"
 
-    def host_ports_config( self ):
-        """Configure host ports to a given transmit speed"""
-        host_list = []
+    def iperf_multi( self,test_time = '15' ):
+        "Bulding stable TCP connections"
         host_list = [h for h in self.hosts]
-        tag_num = len(host_list) - 4
+        tag_num = len(host_list) - 1
+        server= host_list[tag_num]
         for i in xrange(0,tag_num):
+            client = host_list[i]
+            self.iperf_single( [client,server],test_time)
+            time.sleep(0.01)
+        time.sleep( float(test_time)+0.2 )
+        print "The stable TCP test has been done."
+        #Output statics
+        self.statics_output()
+
+    def poisson_multi( self,test_time = 15,lambd = 13.3 ):
+        """Get to activate many hosts,each host give a 75ms TCP connection,then wait for a
+           random time t ,t obey exponential distribution ,the expentation of t is 75 ms"""
+        host_list = [h for h in self.hosts]
+        locks = []
+        tag_num = len(host_list) - 1
+        server= host_list[tag_num]
+        print "The test in poisson starts at:",time.strftime('%Y-%m-%d %H:%M:%S')
+        #Add locks
+        for i in xrange(0, tag_num):
+            lock = thread.allocate_lock()
+            lock.acquire()
+            locks.append(lock)
+        #Add new threads
+        for i in xrange(0,tag_num):
+            client = host_list[i]
+            thread.start_new_thread( poisson,([client,server],test_time,lambd,locks[i],))
+            time.sleep(0.002)
+        print "********cut line**********"
+        #Wait all the threads end
+        for i in xrange(0,tag_num):
+            while locks[i].locked():
+                pass
+        print "The test in poisson ends at:",time.strftime('%Y-%m-%d %H:%M:%S')
+        #Output statics
+        self.statics_output()
+        
+    def onoff_multi(self,test_time = 15,alpha = 1.5 ):
+        """Get to activate many hosts.each host give out a on_off traffic
+        The basic way to use mutiple hosts is thread"""
+        host_list = [h for h in self.hosts]
+        locks = []
+        tag_num = len(host_list) - 1
+        server= host_list[tag_num]
+        print "The test in on_off starts at:",time.strftime('%Y-%m-%d %H:%M:%S')
+        start_time = time.time()
+        #Add locks
+        for i in xrange(0, tag_num):
+            lock = thread.allocate_lock()
+            lock.acquire()
+            locks.append(lock)
+        #Add new threads
+        for i in xrange(0,tag_num):
+            client = host_list[i]
+            thread.start_new_thread( on_off,([client,server],test_time,alpha,locks[i],))
+            time.sleep(0.002)
+        #print "The test in on_off starts at:",time.strftime('%Y-%m-%d %H:%M:%S')
+        print "********cut line**********"
+        #Wait all the threads end
+        for i in xrange(0,tag_num):
+            while locks[i].locked():
+                pass
+        print "The test in on_off ends at:",time.strftime('%Y-%m-%d %H:%M:%S')
+        end_time = time.time()
+        derta =end_time-start_time
+        print "The test time is:%.1fs" %  derta
+        #Output statics
+        self.statics_output()
+
+    def host_ports_config( self,bandwidth1 = '0.01',bandwidth2 = '0.1' ):
+        """Configure host ports to a given transmit speed"""
+        host_list = [h for h in self.hosts]
+        tag_num = len(host_list) - 1
+        for i in xrange(0,290):
             host = host_list[i]
             seq_num = host.name[1:]
-            host.cmd('./host_port_config.sh'+' '+seq_num+' 0'+' 400'+' 0.5' )
-        print "The ports of host1 to host200 has been configured"
+            if i < 100:
+                host.cmd('./host_port_config.sh'+' '+seq_num+' 0'+' 2'+ ' ' + bandwidth1 )
+            else:
+                host.cmd('./host_port_config.sh'+' '+seq_num+' 0'+' 2'+ ' ' + bandwidth2 )
+        print "The ports of host1 to host%d has been configured" %tag_num
+
+    def server_multi( self ):
+        """Start nine iperf servers on one host"""
+        host_list = [ h for h in self.hosts ]
+        tag_num = len(host_list) - 1
+        host = host_list[tag_num]
+        for i in xrange(1,6):
+            port = '50' + str((i/10)) + str((i%10))
+            filename = 'server-p'+port+'.out'
+            host.cmd( 'iperf -s -p'+' '+port+' >> /home/per/log/'+filename+' & ')
+            time.sleep(0.05)
 	
 ##################################################################################
-##############################changed part ends###################################
+##############################body part ends###################################
 ##################################################################################
 class MininetWithControlNet( Mininet ):
 
